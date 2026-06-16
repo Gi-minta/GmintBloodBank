@@ -9,6 +9,12 @@ public static class SecuritySeed
 {
     public static async Task SeedAsync(ApplicationDbContext context)
     {
+        await SeedRoles(context);
+        await SeedUsers(context);
+    }
+
+    private static async Task SeedRoles(ApplicationDbContext context)
+    {
         if (await context.Roles.AnyAsync()) return;
 
         var roles = new List<Role>
@@ -22,18 +28,27 @@ public static class SecuritySeed
 
         context.Roles.AddRange(roles);
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedUsers(ApplicationDbContext context)
+    {
+        if (await context.Users.AnyAsync()) return;
 
         var adminRole = await context.Roles.FirstAsync(r => r.Name == "Administrator");
-        var adminUser = new User
+
+        var users = new List<User>
         {
-            RoleId = adminRole.Id,
-            Username = "admin",
-            Email = "admin@gmintbloodbank.com",
-            PasswordHash = PasswordHasher.Hash("Admin123!"),
-            IsActive = true,
+            new()
+            {
+                RoleId = adminRole.Id,
+                Username = "admin",
+                Email = "admin@gmintbloodbank.com",
+                PasswordHash = PasswordHasher.Hash("Admin123!"),
+                IsActive = true,
+            },
         };
 
-        context.Users.Add(adminUser);
+        context.Users.AddRange(users);
         await context.SaveChangesAsync();
     }
 }
